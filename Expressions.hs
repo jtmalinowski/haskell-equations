@@ -2,9 +2,7 @@ module Expressions where
 import Prelude hiding(sum)
 
 data Expr a =
-  Sum (Expr a) (Expr a) |
   Sums [Expr a] |
-  Subtr (Expr a) (Expr a) |
   Mult (Expr a) (Expr a) |
   Div (Expr a) (Expr a) |
   Exp (Expr a) (Expr a) |
@@ -17,9 +15,7 @@ showRawSums (expr:[]) = show expr
 showRawSums (expr:exprs) = (show expr) ++ " + " ++ (showRawSums exprs)
 
 instance (Show a) => Show (Expr a) where
-  show (Sum eA eB) =    "(" ++ (show eA)  ++ " + " ++ (show eB) ++ ")"
   show (Sums s) =      "( " ++ showRawSums s  ++ " )"
-  show (Subtr eA eB) =  "(" ++ (show eA)  ++ " - " ++ (show eB) ++ ")"
   show (Mult eA eB) =   "(" ++ (show eA)  ++ " * " ++ (show eB) ++ ")"
   show (Div eA eB) =    "(" ++ (show eA)  ++ " / " ++ (show eB) ++ ")"
   show (Exp eA eB) =    "(" ++ (show eA)  ++ " ^ " ++ (show eB) ++ ")"
@@ -27,8 +23,11 @@ instance (Show a) => Show (Expr a) where
   show (Iden) = "x"
   show (Const a) = show a
 
-run (Sum eA eB) x = (run eA x) + (run eB x)
-run (Subtr eA eB) x = (run eA x) - (run eB x)
+
+add eA eB = Sums [eA, eB]
+subtract eA eB = Sums [eA, (Mult (Const (-1)) eB)]
+
+run (Sums xs) x = foldl (\acc f -> acc + (run f x)) 0.0 xs
 run (Mult eA eB) x = (run eA x) * (run eB x)
 run (Div eA eB) x = (run eA x) / (run eB x)
 run (Exp eA eB) x = (run eA x) ** (run eB x)
